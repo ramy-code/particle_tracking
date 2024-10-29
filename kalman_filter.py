@@ -56,26 +56,23 @@ def track_with_kalman_filter(frames,threshold=50,max_distance=10):
 # Parameters for handling particle disappearance
 max_missed_frames = 5  # Number of frames to wait before discarding a particle
 
-# Initialize Kalman filter function
 def initialize_kalman_filter():
-    kf = cv2.KalmanFilter(4, 2)  # 4 dynamic params, 2 measured params
+    kf = cv2.KalmanFilter(4, 2)  
     kf.measurementMatrix = np.array([[1, 0, 0, 0], [0, 1, 0, 0]], np.float32)
     kf.transitionMatrix = np.array([[1, 0, 1, 0], [0, 1, 0, 1], [0, 0, 1, 0], [0, 0, 0, 1]], np.float32)
     kf.processNoiseCov = np.eye(4, dtype=np.float32) * 0.03
     return kf
 
 def track_with_modified_kalman(frames, threshold=50, max_distance=15):
-    trajectories = []  # To store active trajectories
-    kalman_filters = []  # Kalman filters for each active particle
-    missed_frames = []  # Track missed frames for each particle
+    trajectories = []  
+    kalman_filters = []  
+    missed_frames = []  
 
     for frame_idx, frame in enumerate(frames):
-        # Detect particles (using your detection method)
         mask = frame > threshold
         labeled_array, num_features = label(mask)
         detected_positions = np.array(center_of_mass(frame, labeled_array, range(1, num_features + 1)))
 
-        # Update or add particles
         for i, (kf, traj, misses) in enumerate(zip(kalman_filters, trajectories, missed_frames)):
             if len(detected_positions) > 0:
                 # Find nearest detected position to the Kalman-predicted position
@@ -87,8 +84,8 @@ def track_with_modified_kalman(frames, threshold=50, max_distance=15):
                 # If the closest position is within max_distance, update the Kalman filter
                 if nearest_distance < max_distance:
                     measurement = np.array(detected_positions[nearest_idx], np.float32)
-                    kf.correct(measurement)  # Update Kalman filter with the measurement
-                    traj.append(measurement)  # Update trajectory
+                    kf.correct(measurement)  
+                    traj.append(measurement)  
                     missed_frames[i] = 0  # Reset missed frame count
 
                     # Remove the used position
